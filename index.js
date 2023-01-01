@@ -28,14 +28,68 @@ async function dbConnect() {
     /// databases and collections
     const database = client.db("fithubProject");
     const allExercisesCollection = database.collection("allExercises");
+    const usersExercisesCollection = database.collection("usersExercises");
 
     /// endpoints
     app.get("/allExercises", async (req, res) => {
-      const query = {};
-      const result = await allExercisesCollection.find(query).toArray();
-      res.send(result);
+      try {
+        const query = {};
+        const result = await allExercisesCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
-  } catch (err) {}
+
+    ///post datas
+    app.post("/addExercise", async (req, res) => {
+      try {
+        const userEmail = req.query.email;
+        const exerciseData = req.body;
+
+        const queryForFind = { userEmail: userEmail };
+
+        const isUserExist = await usersExercisesCollection.findOne(
+          queryForFind
+        );
+
+        if (isUserExist === null) {
+          const insertData = {
+            userEmail,
+            exercisesData: [exerciseData],
+            time: new Date(),
+            completed: false,
+          };
+          const result = await usersExercisesCollection.insertOne(insertData);
+
+          res.send(result);
+        } else {
+          const prevData = await usersExercisesCollection.findOne(queryForFind);
+
+          // console.log(prevData.exercisesData);
+
+          const updatedDoc = {
+            $set: {
+              exercisesData: [...prevData.exercisesData, exerciseData],
+            },
+          };
+
+          const result = await usersExercisesCollection.updateOne(
+            queryForFind,
+            updatedDoc
+          );
+
+          res.send(result);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    /// error
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 dbConnect().catch((err) => console.log(err));
