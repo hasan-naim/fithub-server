@@ -41,7 +41,26 @@ async function dbConnect() {
       }
     });
 
-    ///post datas
+    /// get exercises by a user
+
+    app.get("/exercisesByUser", async (req, res) => {
+      try {
+        const userEmail = req.query.email;
+        const query = { userEmail };
+
+        const result = await usersExercisesCollection.findOne(query);
+
+        if (result !== null) {
+          res.send({ response: "success", result: result?.exercisesData });
+        } else {
+          res.send({ response: "null", result: [] });
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    ///add exercises to for a user
     app.post("/addExercise", async (req, res) => {
       try {
         const userEmail = req.query.email;
@@ -58,7 +77,6 @@ async function dbConnect() {
             userEmail,
             exercisesData: [exerciseData],
             time: new Date(),
-            completed: false,
           };
           const result = await usersExercisesCollection.insertOne(insertData);
 
