@@ -143,6 +143,39 @@ async function dbConnect() {
       }
     });
 
+    app.put("/updateExerciseState", async (req, res) => {
+      try {
+        const state = req.query.state;
+        const userEmail = req.query.email;
+        const id = req.query.id;
+        const userQuery = { userEmail };
+
+        const userData = await usersExercisesCollection.findOne(userQuery);
+
+        const newData = userData.exercisesData.map((everyObj) => {
+          if (everyObj._id === id) {
+            everyObj.completed = state === "true" ? true : false;
+          }
+
+          return everyObj;
+        });
+
+        const updatedDoc = {
+          $set: {
+            exercisesData: newData,
+          },
+        };
+
+        const result = await usersExercisesCollection.updateOne(
+          userQuery,
+          updatedDoc
+        );
+        res.send({ result, response: state });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
     /// error
   } catch (err) {
     console.log(err);
