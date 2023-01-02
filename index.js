@@ -85,20 +85,59 @@ async function dbConnect() {
           const prevData = await usersExercisesCollection.findOne(queryForFind);
 
           // console.log(prevData.exercisesData);
-
-          const updatedDoc = {
-            $set: {
-              exercisesData: [...prevData.exercisesData, exerciseData],
-            },
-          };
-
-          const result = await usersExercisesCollection.updateOne(
-            queryForFind,
-            updatedDoc
+          const hasBefore = prevData.exercisesData.find(
+            (el) => el._id === exerciseData._id
           );
 
-          res.send(result);
+          console.log(hasBefore);
+
+          if (hasBefore) {
+            res.send({
+              result: "You have added this exercise before! Try Another One.",
+            });
+          } else {
+            const updatedDoc = {
+              $set: {
+                exercisesData: [...prevData.exercisesData, exerciseData],
+              },
+            };
+
+            const result = await usersExercisesCollection.updateOne(
+              queryForFind,
+              updatedDoc
+            );
+
+            res.send(result);
+          }
         }
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    /// delete a exercise from user
+    app.delete("/deleteExerciseByUser", async (req, res) => {
+      try {
+        const id = req.query.id;
+        const userEmail = req.query.email;
+        const userQuery = { userEmail };
+
+        const userData = await usersExercisesCollection.findOne(userQuery);
+
+        const newData = userData?.exercisesData.filter((el) => el._id !== id);
+
+        const updatedDoc = {
+          $set: {
+            exercisesData: newData,
+          },
+        };
+
+        const result = await usersExercisesCollection.updateOne(
+          userQuery,
+          updatedDoc
+        );
+
+        res.send({ result, response: "success" });
       } catch (err) {
         console.log(err);
       }
