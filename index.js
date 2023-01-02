@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
+require("dotenv").config();
 const app = express();
 /// middleware for getting data from client side
 app.use(express.json());
